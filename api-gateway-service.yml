@@ -23,19 +23,19 @@ spring:
           enabled: true
       routes:
         - id: employee-service
-          uri: lb://employee-service
+          uri: http://employee-service.be.svc.cluster.local:8080
           predicates:
             - Path=/employee/**
           filters:
             - RewritePath=/employee/(?<path>.*), /$\{path}
         - id: department-service
-          uri: lb://department-service
+          uri: http://department-service.be.svc.cluster.local:8080
           predicates:
             - Path=/department/**
           filters:
             - RewritePath=/department/(?<path>.*), /$\{path}
         - id: organization-service
-          uri: lb://organization-service
+          uri: http://organization-service.be.svc.cluster.local:8080
           predicates:
             - Path=/organization/**
           filters:
