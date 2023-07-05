@@ -1,344 +1,63 @@
-service-endpoints:
-  kernel-service: http://kernel-service:8080
-  kernel-graph-service: http://kernel-graph-service:8080
-  permission-service: http://permission-service:8080
-  master-service: http://master-service:8080
-  contact-service: http://contact-service:8080
-  partner-service: http://partner-service:8080
-  partner-search-service: http://partner-search-service:8080
-  product-service: http://product-service:8080
-  travel-service: http://travel-service:8080
-  workspace-service: http://workspace-service:8080
-  document-service: http://document-service:8080
-  document-ext-service: http://document-ext-service:8080
-  document-search-service: http://document-search-service:8080
-  ngx-service: http://ngx-service:8080
-  workflow-service: http://workflow-service:8080
-  lease-service: http://lease-service:8080
-  calendar-service: http://calendar-service:8080
-  #accounting-service: http://accounting-service:8080
-  material-service: http://material-service:8080
-  fs-service: http://fs-service:8080
-  invest-service: http://invest-service:8080
-  bi-service: http://bi-service:8080
-  expando-service: http://expando-service:8080
-  construct-service: http://construct-service:8080
-  task-service: http://task-service:8080
-  attachment-service: http://attachment-service:8080
-  notification-service: http://notification-service:8080
-  notification-service-ws: ws://notification-service:8080
-  sapsync-service: http://sapsync-service:8080
-  budget-plan-service: http://budget-plan-service:8080
-  fleet-service: http://fleet-plan-service:8080
-  disposal-service: http://disposal-service:8080
-  brief-service: http://brief-service:8080
-  datagate-service: http://datagate-service:8080
-  timesheet-service: http://timesheet-service:8080
-  tbuilder-service: http://tbuilder-service:8080
-  inventory-service: http://inventory-service:8080
-  invoice-service: http://invoice-service:8080
-  kms-service: http://kms-service:8080
-  shift-service: http://shift-service:8080
+server:
+  port: 8082
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId:-},%X{spanId:-}] ${LOG_LEVEL_PATTERN:-%5p} %m%n"
 
 spring:
+  main:
+    web-application-type: reactive
+  output:
+    ansi:
+      enabled: always
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
       routes:
-        # 1. KERNEL SERVICE --------------------------
-        - id: kernel
-          uri: ${service-endpoints.kernel-service}
+        - id: employee-service
+          uri: lb://employee-service
           predicates:
-            - Path=/api/kernel/**,/api/external/kernel/**,/docs/kernel-service
+            - Path=/employee/**
           filters:
-            - RewritePath=/docs/kernel-service, /v3/api-docs
-        # 2. PERMISSION SERVICE ----------------------
-        - id: permission
-          uri: ${service-endpoints.permission-service}
+            - RewritePath=/employee/(?<path>.*), /$\{path}
+        - id: department-service
+          uri: lb://department-service
           predicates:
-            - Path=/api/permission/**,/docs/permission-service
+            - Path=/department/**
           filters:
-            - RewritePath=/docs/permission-service, /v3/api-docs
-        # 3. MASTER SERVICE --------------------------
-        - id: master
-          uri: ${service-endpoints.master-service}
+            - RewritePath=/department/(?<path>.*), /$\{path}
+        - id: organization-service
+          uri: lb://organization-service
           predicates:
-            - Path=/api/master/**, /docs/master-service
+            - Path=/organization/**
           filters:
-            - RewritePath=/docs/master-service, /v3/api-docs
-        # 4. CONTACT SERVICE --------------------------
-        - id: contact
-          uri: ${service-endpoints.contact-service}
-          predicates:
-            - Path=/api/contact/**, /docs/contact-service
-          filters:
-            - RewritePath=/docs/contact-service, /v3/api-docs
-        # 5. PARTNER SERVICE --------------------------
-        - id: partner
-          uri: ${service-endpoints.partner-service}
-          predicates:
-            - Path=/api/partner/**, /api/system/**, /api/access/**, /api/account/**, /docs/partner-service
-          filters:
-            - RewritePath=/docs/partner-service, /v3/api-docs
-        # 6. PRODUCT SERVICE --------------------------
-        - id: product
-          uri: ${service-endpoints.product-service}
-          predicates:
-            - Path=/api/product/**, /docs/product-service
-          filters:
-            - RewritePath=/docs/product-service, /v3/api-docs
-        # 7. TRAVEL SERVICE ---------------------------
-        - id: travel
-          uri: ${service-endpoints.travel-service}
-          predicates:
-            - Path=/api/travel/**, /docs/travel-service
-          filters:
-            - RewritePath=/docs/travel-service, /v3/api-docs
-        # 8. WORKFLOW SERVICE  ------------------------
-        # 9. WORKSPACE SERVICE ------------------------
-        - id: workspace
-          uri: ${service-endpoints.workspace-service}
-          predicates:
-            - Path=/api/workspace/**, /api/task/**, /docs/workspace-service
-          filters:
-            - RewritePath=/docs/workspace-service, /v3/api-docs
-        # 10. DOCUMENT SERVICE ------------------------
-        - id: document
-          uri: ${service-endpoints.document-service}
-          predicates:
-            - Path=/api/document/**, /docs/document-service
-          filters:
-            - RewritePath=/docs/document-service, /v3/api-docs
-        # 11. NGX SERVICE -----------------------------
-        - id: ngx
-          uri: ${service-endpoints.ngx-service}
-          predicates:
-            - Path=/api/ngx/**, /docs/ngx-service
-          filters:
-            - RewritePath=/docsdocs/ngx-service, /v3/api-docs
-        # 12. CALENDAR SERVICE -----------------------------
-        - id: calendar
-          uri: ${service-endpoints.calendar-service}
-          predicates:
-            - Path=/api/calendar/**, /docs/calendar-service
-          filters:
-            - RewritePath=/docs/calendar-service, /v3/api-docs
-        # 13. LEASE SERVICE -----------------------------
-        - id: lease
-          uri: ${service-endpoints.lease-service}
-          predicates:
-            - Path=/api/lease/**, /docs/lease-service
-          filters:
-            - RewritePath=/docs/lease-service, /v3/api-docs
-        # 14. ACCOUNTING SERVICE -----------------------------
-        #- id: accounting
-        #  uri: ${service-endpoints.accounting-service}
-        #  predicates:
-        #    - Path=/api/account/**, /docs/account-service
-        #  filters:
-        #    - RewritePath=/docs/account-service, /v3/api-docs
-        # 15. MATERIAL SERVICE -----------------------------
-        - id: material
-          uri: ${service-endpoints.material-service}
-          predicates:
-            - Path=/api/material/**, /docs/material-service
-          filters:
-            - RewritePath=/docs/material-service, /v3/api-docs
-        # 16. FS SERVICE -----------------------------
-        - id: fs
-          uri: ${service-endpoints.fs-service}
-          predicates:
-            - Path=/api/fs/**, /docs/fs-service
-          filters:
-            - RewritePath=/docs/fs-service, /v3/api-docs
-        # 17. INVEST SERVICE -----------------------------
-        - id: invest
-          uri: ${service-endpoints.invest-service}
-          predicates:
-            - Path=/api/invest/**, /docs/invest-service
-          filters:
-            - RewritePath=/docs/invest-service, /v3/api-docs
-        # 18. BI SERVICE -----------------------------
-        - id: bi
-          uri: ${service-endpoints.bi-service}
-          predicates:
-            - Path=/api/report/**, /docs/bi-service
-          filters:
-            - RewritePath=/docs/bi-service, /v3/api-docs
-        # 19. EXPANDO SERVICE -----------------------------
-        - id: expando
-          uri: ${service-endpoints.expando-service}
-          predicates:
-            - Path=/api/expando/**, /docs/expando-service
-          filters:
-            - RewritePath=/docs/expando-service, /v3/api-docs
-        # 20. CONSTRUCT SERVICE -----------------------------
-        - id: construct
-          uri: ${service-endpoints.construct-service}
-          predicates:
-            - Path=/api/construct/**, /docs/construct-service
-          filters:
-            - RewritePath=/docs/construct-service, /v3/api-docs
-        # 21. DOCUMENT-EXT SERVICE -----------------------------
-        - id: document-ext
-          uri: ${service-endpoints.document-ext-service}
-          predicates:
-            - Path=/api/document-ext/**, /docs/document-ext-service
-          filters:
-            - RewritePath=/docs/document-ext-service, /v3/api-docs
-        # 22. TASK SERVICE -----------------------------
-        #- id: task
-        #  uri: ${service-endpoints.task-service}
-        #  predicates:
-        #    - Path=/api/task/**, /docs/task-service
-        #  filters:
-        #    - RewritePath=/docs/task-service, /v3/api-docs
-        # 22. ATTACHMENT SERVICE -----------------------------
-        - id: attachment
-          uri: ${service-endpoints.attachment-service}
-          predicates:
-            - Path=/api/attachment/**, /docs/attachment-service
-          filters:
-            - RewritePath=/docs/attachment-service, /v3/api-docs
-        # 22. NOFITY SERVICE -----------------------------
-        - id: notification
-          uri: ${service-endpoints.notification-service}
-          predicates:
-            - Path=/api/notification/**, /docs/notification-service
-          filters:
-            - RewritePath=/docs/notification-service, /v3/api-docs
-        - id: notification-ws
-          uri: ${service-endpoints.notification-service-ws}
-          predicates:
-            - Path=/api/socket/**
-          filters:
-            - AddRequestHeader=Web-Socket-Filtered, true
-        # 23. DOCUMENT SEARCH SERVICE
-        - id: document-search-service
-          uri: ${service-endpoints.document-search-service}
-          predicates:
-            - Path=/api/document-search/**,/docs/document-search-service
-          filters:
-            - RewritePath=/docs/document-search-service, /v3/api-docs
-        # 24. PARTNER SEARCH SERVICE
-        - id: partner-search-service
-          uri: ${service-endpoints.partner-search-service}
-          predicates:
-            - Path=/api/partner-search/**,/docs/partner-search-service
-          filters:
-            - RewritePath=/docs/partner-search-service, /v3/api-docs
-        # 25. SAPSYNC SERVICE
-        - id: sapsync-service
-          uri: ${service-endpoints.sapsync-service}
-          predicates:
-            - Path=/api/sapsync/**,/docs/sapsync-service
-          filters:
-            - RewritePath=/docs/sapsync-service, /v3/api-docs
-        # 26. LEGACY SERVICE (Voffice 3 api)
-        - id: legacy-service
-          uri: http://legacy-service:8080
-          predicates:
-            - Path=/api/legacy/**,/docs/legacy-service
-          filters:
-            - RewritePath=/docs/legacy-service, /v3/api-docs
-        # 27. BUDGET PLAN SERVICE
-        - id: budget-plan-service
-          uri: ${service-endpoints.budget-plan-service}
-          predicates:
-            - Path=/api/budget-plan/**,/docs/budget-plan-service
-          filters:
-            - RewritePath=/docs/budget-plan-service, /v3/api-docs
-        # 28. DISPOSAL SERVICE
-        - id: disposal-service
-          uri: ${service-endpoints.disposal-service}
-          predicates:
-            - Path=/api/disposal/**,/docs/disposal-service
-          filters:
-            - RewritePath=/docs/disposal-service, /v3/api-docs
-        # 29. BRIEF SERVICE
-        - id: brief-service
-          uri: ${service-endpoints.brief-service}
-          predicates:
-            - Path=/api/brief/**,/docs/brief-service
-          filters:
-            - RewritePath=/docs/brief-service, /v3/api-docs
-        # 30. FLEET SERVICE
-        - id: fleet-service
-          uri: ${service-endpoints.fleet-service}
-          predicates:
-            - Path=/api/fleet/**,/docs/fleet-service
-          filters:
-            - RewritePath=/docs/fleet-service, /v3/api-docs
-        # 31. PARTNER SYNC SERVICE
-        #- id: partner-sync-service
-        #  uri: ${service-endpoints.partner-sync-service}
-        #  predicates:
-        #    - Path=/api/fleet/**,/docs/partner-sync-service
-        #  filters:
-        #    - RewritePath=/docs/partner-sync-service, /v3/api-docs
-        # 32. DATAGATE SERVICE
-        - id: datagate-service
-          uri: ${service-endpoints.datagate-service}
-          predicates:
-            - Path=/api/datagate/**,/docs/datagate-service
-          filters:
-            - RewritePath=/docs/datagate-service, /v3/api-docs
-        # 33. TIMESHEET SERVICE
-        - id: timesheet-service
-          uri: ${service-endpoints.timesheet-service}
-          predicates:
-            - Path=/api/timesheet/**,/docs/timesheet-service
-          filters:
-            - RewritePath=/docs/timesheet-service, /v3/api-docs
-        # 34. TBUILDER SERVICE
-        - id: tbuilder-service
-          uri: ${service-endpoints.tbuilder-service}
-          predicates:
-            - Path=/api/tbuilder/**,/docs/tbuilder-service
-          filters:
-            - RewritePath=/docs/tbuilder-service, /v3/api-docs
-        # 35. INVENTORY SERVICE
-        - id: inventory-service
-          uri: ${service-endpoints.inventory-service}
-          predicates:
-            - Path=/api/inventory/**,/docs/inventory-service
-          filters:
-            - RewritePath=/docs/inventory-service, /v3/api-docs
-        # 36. INVOICE SERVICE
-        - id: invoice-service
-          uri: ${service-endpoints.invoice-service}
-          predicates:
-            - Path=/api/purchase/**,/api/payment/**,/docs/invoice-service
-          filters:
-            - RewritePath=/docs/invoice-service, /v3/api-docs
-        # 37. KMS SERVICE
-        - id: kms-service
-          uri: ${service-endpoints.kms-service}
-          predicates:
-            - Path=/api/kms/**,/docs/kms-service
-          filters:
-            - RewritePath=/docs/kms-service, /v3/api-docs
-        # 38. SHIFT SERVICE
-        - id: shift-service
-          uri: ${service-endpoints.shift-service}
-          predicates:
-            - Path=/api/shift/**,/api/external/shift/**,/docs/shift-service
-          filters:
-            - RewritePath=/docs/shift-service, /v3/api-docs
-        # ----------------------------------------------
-        # SWAGGER ROUTE          -----------------------
-        # ----------------------------------------------
+            - RewritePath=/organization/(?<path>.*), /$\{path}
         - id: openapi
-          uri: 'http://localhost:8080'
+          uri: http://localhost:${server.port}
           predicates:
             - Path=/v3/api-docs/**
           filters:
-            - RewritePath=/v3/api-docs/(?<path>(?!swagger-config).*), /$\{path}
-        # --------- End routes -------------------------
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - '*'
-            allowedHeaders: [ "Authorization", "Accept", "Origin", "Referer", "User-Agent", "Content-Type", "Content-Length", "Credential", "X-XSRF-TOKEN", "X-NONSAP-TOKEN", "X-NONSAP-USER"]
-            allowedMethods: [ "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH" ]
-            maxAge: 4200
+            - RewritePath=/v3/api-docs/(?<path>.*), /$\{path}/v3/api-docs
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: employee
+        url: /v3/api-docs/employee
+      - name: department
+        url: /v3/api-docs/department
+      - name: organization
+        url: /v3/api-docs/organization
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
