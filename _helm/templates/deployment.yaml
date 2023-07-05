@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chart.fullname" . }}
+  labels:
+  {{- include "chart.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+  {{- include "chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+    {{- include "chart.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.hostAliases }}
+      hostAliases:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "chart.serviceAccountName" . }}
+      securityContext:
+      {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+          {{- if .Values.keystore.enabled }}
+            - name: JAVA_TOOL_OPTIONS
+              value: -Djavax.net.ssl.trustStore=/mnt/secrets/keystore.jks -Djavax.net.ssl.trustStorePassword={{ .Values.keystore.password}}
+          {{- end }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.activeProfiles | default "default" }}
+            - name: TZ
+              value: {{ .Values.timeZone | default "Asia/Ho_Chi_Minh" }}
+            - name: JAVA_TOOL_OPTIONS
+              value: {{ .Values.jvmOptions | default "" }}
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            timeoutSeconds: 30
+            successThreshold: 1
+            failureThreshold: 5
+            initialDelaySeconds: 30
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+            timeoutSeconds: 30
+            successThreshold: 1
+            failureThreshold: 5
+            initialDelaySeconds: 30
+            periodSeconds: 5
+          resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.keystore.enabled }}
+          volumeMounts:
+            - mountPath: /mnt/secrets
+              name: secrets
+              readOnly: true
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.keystore.enabled }}
+      volumes:
+        - name: secrets
+          secret:
+            secretName: {{ include "chart.fullname" . }}-keystore
+            items:
+              - key: keystore.jks
+                path: keystore.jks
+      {{- end }}
+
